@@ -22,7 +22,7 @@ GOTESTFLAGS?=-race
 # if you need a specific version, just override below
 # TODO: If your service is not being upstreamed to Edgex Foundry, you need to determine the best approach for
 #       setting your service's version for non-development builds.
-APPVERSION=$(shell cat ./VERSION 2>/dev/null || echo 0.0.0)
+APPVERSION=$(shell cat ./VERSION 2>/dev/null || echo 0.0.1)
 
 # This pulls the version of the SDK from the go.mod file. If the SDK is the only required module,
 # it must first remove the word 'required' so the offset of $2 is the same if there are multiple required modules
@@ -52,10 +52,7 @@ docker:
 	    --build-arg http_proxy \
 	    --build-arg https_proxy \
 		-f Dockerfile \
-		--label "git_sha=$(GIT_SHA)" \
-		-t edgexfoundry/presence-service:$(GIT_SHA) \
-		-t edgexfoundry/presence-service:${APPVERSION}-dev \
-		-t nexus3.edgexfoundry.org:10004/presence-service:${APPVERSION}-dev \
+		-t edgexfoundry/presence-service:latest \
 		.
 
 # The test-attribution-txt.sh scripts are required for upstreaming to EdgeX Foundry.

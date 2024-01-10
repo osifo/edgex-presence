@@ -18,6 +18,7 @@ package functions
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -175,7 +176,7 @@ func (s *Sample) ConvertEventToXML(ctx interfaces.AppFunctionContext, data inter
 	// Example of DEBUG message which by default you don't want to be logged.
 	//     To see debug log messages, Set WRITABLE_LOGLEVEL=DEBUG environment variable or
 	//     change LogLevel in configuration.yaml before running app service.
-	lc.Debugf("Event converted to XML in pipeline '%s': %s", ctx.PipelineId(), xml)
+	lc.Debugf("[DEBUG] Event data has been converted to XML '%s': %s", ctx.PipelineId(), xml)
 
 	// TODO: Remove sample metric and implement meaningful metrics if any needed.
 	if s.eventsConvertedToXML == nil {
@@ -199,6 +200,31 @@ func (s *Sample) ConvertEventToXML(ctx interfaces.AppFunctionContext, data inter
 	// Returning true indicates that the pipeline execution should continue with the next function
 	// using the event passed as input in this case.
 	return true, xml
+}
+
+func (s *Sample) ConvertEventToJSON(ctx interfaces.AppFunctionContext, data interface{}) (bool, interface{}) {
+	logClient := ctx.LoggingClient()
+	logClient.Debugf("The ConvertEventToJSON function called in pipeline %s", ctx.PipelineId())
+
+	if data == nil {
+		return false, fmt.Errorf("ConvertEventToJSON() in pipeline %s was called without data", ctx.PipelineId())
+	}
+
+	eventData, ok := data.(dtos.Event)
+	if !ok {
+		return false, fmt.Errorf("ConvertEventToJSON() in pipeline: %s - type received is not an event", ctx.PipelineId())
+	}
+
+	jsonData, error := json.Marshal(eventData)
+	if error != nil {
+		return false, fmt.Errorf("ConvertEventToJSON() in pipeline %s - could not convert event data to JSON", ctx.PipelineId())
+	}
+
+	logClient.Debugf("Event data in pipeline %s has been successfully converted to JSON: %s", ctx.PipelineId, jsonData)
+
+	//TODO =  Add metric collection here.
+
+	return true, jsonData
 }
 
 // OutputXML is an example of processing transformed data
@@ -225,5 +251,27 @@ func (s *Sample) OutputXML(ctx interfaces.AppFunctionContext, data interface{}) 
 
 	// Returning false terminates the pipeline execution, so this should be last function specified in the pipeline,
 	// which is typical in conjunction with usage of .SetResponseData() function.
+	return false, nil
+}
+
+func (s *Sample) OutputJSON(ctx interfaces.AppFunctionContext, data interface{}) (bool, interface{}) {
+	logClient := ctx.LoggingClient()
+	logClient.Debugf("OutputJSON called in pipeline: %s", ctx.PipelineId())
+
+	if data == nil {
+		return false, fmt.Errorf("OutputJSON() in pipeline %s, no data received", ctx.PipelineId())
+	}
+
+	jsonData, ok := data.(string)
+
+	if !ok {
+		return false, fmt.Errorf("OutputJSON() in pipeline %s. Type received could not be converted to a string", ctx.PipelineId())
+	}
+
+	logClient.Debugf("JSON to be output in pipeline %s: \n%s", ctx.PipelineId(), jsonData)
+
+	ctx.SetResponseData([]byte(jsonData))
+	ctx.SetResponseContentType(common.ContentTypeJSON)
+
 	return false, nil
 }

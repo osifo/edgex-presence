@@ -34,7 +34,7 @@ import (
 //	'AppCustom' in this example. Replace this example with your configuration structure or
 //	remove this file if not using structured custom configuration.
 type ServiceConfig struct {
-	AppCustom AppCustomConfig
+	CustomConfig AppCustomConfig
 }
 
 // AppCustomConfig is example of service's custom structured configuration that is specified in the service's

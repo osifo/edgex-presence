@@ -75,14 +75,14 @@ func (app *myApp) CreateAndRunAppService(serviceKey string, newServiceFactory fu
 	// TODO: Change to use your service's custom configuration struct
 	//       or remove if not using custom configuration capability
 	app.serviceConfig = &config.ServiceConfig{}
-	if err := app.service.LoadCustomConfig(app.serviceConfig, "AppCustom"); err != nil {
+	if err := app.service.LoadCustomConfig(app.serviceConfig, "CustomConfig"); err != nil {
 		app.lc.Errorf("failed load custom configuration: %s", err.Error())
 		return -1
 	}
 
 	// Optionally validate the custom configuration after it is loaded.
 	// TODO: remove if you don't have custom configuration or don't need to validate it
-	if err := app.serviceConfig.AppCustom.Validate(); err != nil {
+	if err := app.serviceConfig.CustomConfig.Validate(); err != nil {
 		app.lc.Errorf("custom configuration failed validation: %s", err.Error())
 		return -1
 	}
@@ -91,7 +91,7 @@ func (app *myApp) CreateAndRunAppService(serviceKey string, newServiceFactory fu
 	// the Configuration Provider, aka Consul.
 	// For more details see https://docs.edgexfoundry.org/latest/microservices/application/GeneralAppServiceConfig/#writable-custom-configuration
 	// TODO: Remove if not using writable custom configuration
-	if err := app.service.ListenForCustomConfigChanges(&app.serviceConfig.AppCustom, "AppCustom", app.ProcessConfigUpdates); err != nil {
+	if err := app.service.ListenForCustomConfigChanges(&app.serviceConfig.CustomConfig, "CustomConfig", app.ProcessConfigUpdates); err != nil {
 		app.lc.Errorf("unable to watch custom writable configuration: %s", err.Error())
 		return -1
 	}
@@ -104,8 +104,10 @@ func (app *myApp) CreateAndRunAppService(serviceKey string, newServiceFactory fu
 	err = app.service.SetDefaultFunctionsPipeline(
 		transforms.NewFilterFor(deviceNames).FilterByDeviceName,
 		sample.LogEventDetails,
-		sample.ConvertEventToXML,
-		sample.OutputXML)
+		// sample.ConvertEventToXML,
+		// sample.OutputXML,
+		sample.ConvertEventToJSON,
+		sample.OutputJSON)
 	if err != nil {
 		app.lc.Errorf("SetFunctionsPipeline returned error: %s", err.Error())
 		return -1
@@ -140,6 +142,17 @@ func (app *myApp) CreateAndRunAppService(serviceKey string, newServiceFactory fu
 		return -1
 	}
 
+	//this function pipeline is specifically for processing the temperature device data as json
+	err = app.service.AddFunctionsPipelineForTopics("Temperature-Pipeline", []string{"events/device/device-temp-service/Temperature-Device/#"},
+		sample.LogEventDetails,
+		sample.SendGetCommand,
+		sample.ConvertEventToJSON,
+		sample.OutputJSON)
+	if err != nil {
+		app.lc.Errorf("Temperature-Pipeline returned error: %s", err.Error())
+		return -1
+	}
+
 	if err := app.service.Run(); err != nil {
 		app.lc.Errorf("Run returned error: %s", err.Error())
 		return -1
@@ -161,8 +174,8 @@ func (app *myApp) ProcessConfigUpdates(rawWritableConfig interface{}) {
 		return
 	}
 
-	previous := app.serviceConfig.AppCustom
-	app.serviceConfig.AppCustom = *updated
+	previous := app.serviceConfig.CustomConfig
+	app.serviceConfig.CustomConfig = *updated
 
 	if reflect.DeepEqual(previous, updated) {
 		app.lc.Info("No changes detected")

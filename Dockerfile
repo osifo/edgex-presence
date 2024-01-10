@@ -36,19 +36,18 @@ RUN $MAKE
 FROM alpine:3.17
 # TODO: Change Copyright to your company if open sourcing or remove label
 LABEL license='SPDX-License-Identifier: Apache-2.0' \
-  copyright='Copyright (c) 2022: Intel'
+  copyright='Copyright (c) 2023: Tilte Labs'
 LABEL Name=presence-service Version=${VERSION}
 
 # dumb-init is required as security-bootstrapper uses it in the entrypoint script
 RUN apk add --update --no-cache ca-certificates dumb-init
 
-COPY --from=builder /app/Attribution.txt /Attribution.txt
 COPY --from=builder /app/LICENSE /LICENSE
 COPY --from=builder /app/res/ /res/
 COPY --from=builder /app/presence-service /presence-service
 
 # TODO: set this port appropriatly as it is in the configuation.yaml
-EXPOSE 59740
+EXPOSE 59760
 
 ENTRYPOINT ["/presence-service"]
 CMD ["-cp=consul.http://edgex-core-consul:8500", "--registry"]

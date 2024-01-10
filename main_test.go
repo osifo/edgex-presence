@@ -49,8 +49,8 @@ func TestCreateAndRunService_Success(t *testing.T) {
 		mockAppService.On("LoadCustomConfig", mock.Anything, mock.Anything, mock.Anything).
 			Return(nil).Run(func(args mock.Arguments) {
 			// set the required configuration so validation passes
-			app.serviceConfig.AppCustom.SomeValue = 987
-			app.serviceConfig.AppCustom.SomeService.Host = "SomeHost"
+			app.serviceConfig.CustomConfig.SomeValue = 987
+			app.serviceConfig.CustomConfig.SomeService.Host = "SomeHost"
 		})
 		mockAppService.On("ListenForCustomConfigChanges", mock.Anything, mock.Anything, mock.Anything).
 			Return(nil)
@@ -110,8 +110,8 @@ func TestCreateAndRunService_SetFunctionsPipeline_Failed(t *testing.T) {
 		mockAppService.On("LoadCustomConfig", mock.Anything, mock.Anything, mock.Anything).
 			Return(nil).Run(func(args mock.Arguments) {
 			// set the required configuration so validation passes
-			app.serviceConfig.AppCustom.SomeValue = 987
-			app.serviceConfig.AppCustom.SomeService.Host = "SomeHost"
+			app.serviceConfig.CustomConfig.SomeValue = 987
+			app.serviceConfig.CustomConfig.SomeService.Host = "SomeHost"
 		})
 		mockAppService.On("ListenForCustomConfigChanges", mock.Anything, mock.Anything, mock.Anything).
 			Return(nil)
@@ -143,8 +143,8 @@ func TestCreateAndRunService_Run_Failed(t *testing.T) {
 		mockAppService.On("LoadCustomConfig", mock.Anything, mock.Anything, mock.Anything).
 			Return(nil).Run(func(args mock.Arguments) {
 			// set the required configuration so validation passes
-			app.serviceConfig.AppCustom.SomeValue = 987
-			app.serviceConfig.AppCustom.SomeService.Host = "SomeHost"
+			app.serviceConfig.CustomConfig.SomeValue = 987
+			app.serviceConfig.CustomConfig.SomeService.Host = "SomeHost"
 		})
 		mockAppService.On("ListenForCustomConfigChanges", mock.Anything, mock.Anything, mock.Anything).
 			Return(nil)
